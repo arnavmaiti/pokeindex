@@ -18,6 +18,9 @@
   "homepage": "https://github.com/arnavmaiti/pokeindex#readme",
   "dependencies": {
     "chalk": "^4.1.1",
-    "express": "^4.17.1"
+    "cheerio": "^1.0.0-rc.9",
+    "express": "^4.17.1",
+    "https": "^1.0.0",
+    "promise": "^8.1.0"
   }
 }

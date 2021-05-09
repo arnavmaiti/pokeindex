@@ -1,11 +1,14 @@
 // Modules
-var express = require('express')
-var router = express.Router()
+const express = require('express')
+const router = express.Router()
 
 const Logger = require('../utilities/logger')
 const logger = new Logger()
 
 const UserAuth = require('../utilities/userauth')
+
+const Crawler = require('./crawler')
+const crawler = new Crawler()
 
 // Authentication middleware
 router.use((req, res, next) => {
@@ -32,12 +35,11 @@ router.use((req, res, next) => {
 })
 
 router.get('/', (req, res) => {
-  // TODO: Implement current crawl status similar to how it shows when server starts.
-  res.send('test')
+  res.send(crawler.fetch())
 })
 
 router.post('/', (req, res) => {
-
+  res.send(crawler.start())
 })
 
 module.exports = router
