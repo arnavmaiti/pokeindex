@@ -42,4 +42,8 @@ router.post('/', (req, res) => {
   res.send(crawler.start())
 })
 
+router.delete('/', (req, res) => {
+  res.send(crawler.stop())
+})
+
 module.exports = router

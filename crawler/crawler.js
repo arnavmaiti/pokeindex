@@ -9,9 +9,11 @@ const logger = new Logger()
 const pokeurl = 'https://www.pokemon.com'
 const bulbaurl = 'https://www.pokemon.com/us/pokedex/bulbasaur'
 
-const nextnode = 'div.pokedex-pokemon-pagination a.next'
-const name = 'div.pokedex-pokemon-pagination-title div'
+const nextnode = 'div.pokedex-pokemon-pagination>a.next'
+const name = 'div.pokedex-pokemon-pagination-title>div'
 const number = 'div.pokedex-pokemon-pagination-title span.pokemon-number'
+const type = 'div.pokedex-pokemon-attributes.active>div.dtm-type>ul>li>a'
+const stats = 'div.pokemon-stats-info.active>ul>li'
 
 // Parsed data
 let data = {
@@ -20,6 +22,7 @@ let data = {
 }
 let current = 'Bulbasaur'
 let error = ''
+let cancel = false
 
 // Job status:
 // 0 - completed
@@ -40,6 +43,7 @@ class Crawler {
         'message': `Crawling in progress. Current crawled Pokémon is ${current}`
       }
     } else {
+      cancel = false
       // Start with Bulba
       this.crawl(bulbaurl)
       return {
@@ -64,7 +68,18 @@ class Crawler {
         'message': `Crawling failed on ${current} with the message - ${error}`
       }
     } else {
-      return `Crawling completed`
+      return {
+        'status': 'Completed',
+        'message': `Crawling completed`
+      }
+    }
+  }
+
+  stop() {
+    cancel = true
+    return {
+      'status': 'Completed',
+      'message': `Crawling completed. Last crawled Pokémon was ${current}`
     }
   }
 
@@ -88,14 +103,42 @@ class Crawler {
         console.log(nexturl)
         // Name and number
         poke.name = $(name).clone().children().remove().end().text().trim().replace('\n', "")
-        poke.number = $(number).text().trim().replace('#', "")
-        console.log(poke)
+        poke.number = parseInt($(number).text().trim().replace('#', ""))
+        current = poke.name
+
+        // Type
+        let types = $(type)
+        poke.type = []
+        for (let i = 0; i < types.length; i++) {
+          poke.type.push($(types[i]).text().trim())
+        }
+
+        // Stats
+        let stat = $(stats)
+        poke.stats = {
+          'HP': 0,
+          'Attack': 0,
+          'Defense': 0,
+          'Special Attack': 0,
+          'Special Defense': 0,
+          'Speed': 0
+        }
+        console.log(stat.length)
+        poke.stats['HP'] = parseInt($(stat[0]).find('ul li.meter').attr('data-value'))
+        poke.stats['Attack'] = parseInt($(stat[1]).find('ul li.meter').attr('data-value'))
+        poke.stats['Defense'] = parseInt($(stat[2]).find('ul li.meter').attr('data-value'))
+        poke.stats['Special Attack'] = parseInt($(stat[3]).find('ul li.meter').attr('data-value'))
+        poke.stats['Special Defense'] = parseInt($(stat[4]).find('ul li.meter').attr('data-value'))
+        poke.stats['Speed'] = parseInt($(stat[5]).find('ul li.meter').attr('data-value'))
+
+
 
         // Add to pokeentry
+        console.log(poke)
         data.pokemon.push(poke)
 
         // Implement next in a way that if next is bulaurl then exit
-        if (nexturl != bulbaurl) {
+        if (!cancel && nexturl != bulbaurl) {
           status = 1
           error = ''
           this.crawl(nexturl)
